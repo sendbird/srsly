@@ -190,7 +190,7 @@ cdef class Packer(object):
                         continue
                     else:
                         raise OverflowError("Integer value out of range")
-            elif PyInt_CheckExact(o) if strict_types else PyInt_Check(o):
+            elif PyLong_CheckExact(o) if strict_types else PyLong_Check(o):
                 longval = o
                 ret = msgpack_pack_long(&self.pk, longval)
             elif PyFloat_CheckExact(o) if strict_types else PyFloat_Check(o):

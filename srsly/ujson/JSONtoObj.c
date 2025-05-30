@@ -90,7 +90,7 @@ JSOBJ Object_newArray(void *prv)
 
 JSOBJ Object_newInteger(void *prv, JSINT32 value)
 {
-  return PyInt_FromLong( (long) value);
+  return PyLong_FromLong( (long) value);
 }
 
 JSOBJ Object_newLong(void *prv, JSINT64 value)
