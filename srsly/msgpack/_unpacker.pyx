@@ -4,13 +4,12 @@ from cpython cimport *
 
 cdef extern from "Python.h":
     ctypedef struct PyObject
-    cdef int PyObject_AsReadBuffer(object o, const void** buff, Py_ssize_t* buf_len) except -1
     object PyMemoryView_GetContiguous(object obj, int buffertype, char order)
 
 from libc.stdlib cimport *
 from libc.string cimport *
 from libc.limits cimport *
-ctypedef unsigned long long uint64_t
+from libc.stdint cimport uint64_t
 
 from .exceptions import (
     BufferFull,
@@ -113,6 +112,7 @@ cdef inline int get_data_from_buffer(object obj,
                                      int *new_protocol) except 0:
     cdef object contiguous
     cdef Py_buffer tmp
+    cdef const unsigned char[:] mv
     if PyObject_CheckBuffer(obj):
         new_protocol[0] = 1
         if PyObject_GetBuffer(obj, view, PyBUF_FULL_RO) == -1:
@@ -133,12 +133,13 @@ cdef inline int get_data_from_buffer(object obj,
         return 1
     else:
         new_protocol[0] = 0
-        if PyObject_AsReadBuffer(obj, <const void**> buf, buffer_len) == -1:
-            raise BufferError("could not get memoryview")
+        mv = obj
+        buf[0] = <char*>&mv[0]
+        buffer_len[0] = mv.size
         PyErr_WarnEx(RuntimeWarning,
-                     "using old buffer interface to unpack %s; "
+                     ("using old buffer interface to unpack %s; "
                      "this leads to unpacking errors if slicing is used and "
-                     "will be removed in a future version" % type(obj),
+                     "will be removed in a future version" % type(obj)).encode('utf-8'),
                      1)
         return 1
 
